@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: PGP Encryption
+server:
+  port:
+    8081
+
+
