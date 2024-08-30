@@ -34,7 +34,7 @@ public class PgpEncryptionController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/decrypt")
-    public ResponseEntity<String> decryptContent(@RequestBody String request) {
+    public ResponseEntity<DecryptionResponse> decryptContent(@RequestBody String request) {
         log.info("Received Request: {}", request);
         PgpEncryption pgpEncryption = new Gson().fromJson(request, PgpEncryption.class);
         try {
@@ -43,10 +43,11 @@ public class PgpEncryptionController {
             final InputStream pkey = new ByteArrayInputStream(stripPgpHeadAndTailAndChecksum(privateKey).getBytes(StandardCharsets.UTF_8));
             final InputStream encryptedData = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
             final InputStream decrypted = pgpEncryptionService.decrypt(encryptedData, pgpEncryption.getPassphrase(), pkey);
-            String result = new String(decrypted.readAllBytes());
-            return ResponseEntity.ok(result);
+            String result = new String(decrypted.readAllBytes());   
+            DecryptionResponse decryptionResponse = DecryptionResponse.builder().decryptedContent(result).build();
+            return ResponseEntity.ok(decryptionResponse);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(new DecryptionResponse("Error: " + e.getMessage()));
         }
     }
 
